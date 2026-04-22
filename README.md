@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="Resources/pixzl-logo.svg" width="120" alt="Pixzl">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="Resources/pixzl-logo-light.svg">
+    <img src="Resources/pixzl-logo-dark.svg" width="120" alt="Pixzl">
+  </picture>
 </p>
 
 <h1 align="center">PixzlSwiftLens</h1>
