@@ -15,7 +15,7 @@
 
 <p align="center">
   <a href="https://github.com/your-org/PixzlSwiftLens/actions"><img src="https://img.shields.io/badge/swift-6.0-orange.svg" alt="Swift 6.0"></a>
-  <img src="https://img.shields.io/badge/iOS-17.0%2B-blue.svg" alt="iOS 17.0+">
+  <img src="https://img.shields.io/badge/iOS-26.0%2B-blue.svg" alt="iOS 26.0+">
   <img src="https://img.shields.io/badge/SPM-compatible-brightgreen.svg" alt="SPM">
   <img src="https://img.shields.io/badge/license-MIT-lightgrey.svg" alt="MIT">
 </p>
@@ -122,9 +122,9 @@ xcrun nm -gU YourApp.app/YourApp | grep -i pixzl
 
 ## Requirements
 
-- iOS 17+
-- Swift 6.0+
-- Xcode 16+
+- iOS 26+
+- Swift 6.2+
+- Xcode 26+
 
 ## License
 
