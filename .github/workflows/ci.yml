@@ -14,7 +14,7 @@ jobs:
     name: SPM Build & Test (macOS host)
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Tooling versions
         run: |
           xcodebuild -version
@@ -28,7 +28,7 @@ jobs:
     name: iOS Simulator Build
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Tooling versions
         run: xcodebuild -version
       - name: Build library
