@@ -113,7 +113,9 @@ The entire commit history was rewritten via `git filter-repo` to use the GitHub 
 
 `main` has branch protection: **force-push and deletion are blocked**. PR reviews and required status checks are *not* enforced — direct pushes are fine, but rewriting history needs the protection toggled off via the GitHub API first (which is itself a destructive change requiring explicit user authorization).
 
-The remote is SSH (`git@github.com:Pixzl/PixzlSwiftLens.git`) — HTTPS pushes fail because the OAuth token lacks the `workflow` scope and any commit touching `.github/workflows/` gets rejected.
+The remote is SSH (`git@github.com:Pixzl/PixzlSwiftLens.git`) — HTTPS pushes fail because the OAuth token lacks the `workflow` scope and any commit touching `.github/workflows/` gets rejected. The same scope limitation breaks `gh pr merge` on Dependabot PRs that touch workflows: the workaround is to push the same diff directly to `main` over SSH, after which Dependabot auto-closes its now-redundant PR.
+
+Dependabot is configured in `.github/dependabot.yml` and opens weekly PRs for GitHub Actions version bumps. They are safe to merge or to land directly on `main` (see above).
 
 ## Releasing
 
