@@ -14,7 +14,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/your-org/PixzlSwiftLens/actions"><img src="https://img.shields.io/badge/swift-6.0-orange.svg" alt="Swift 6.0"></a>
+  <a href="https://github.com/Pixzl/PixzlSwiftLens/actions/workflows/ci.yml"><img src="https://github.com/Pixzl/PixzlSwiftLens/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/swift-6.2-orange.svg" alt="Swift 6.2">
   <img src="https://img.shields.io/badge/iOS-26.0%2B-blue.svg" alt="iOS 26.0+">
   <img src="https://img.shields.io/badge/SPM-compatible-brightgreen.svg" alt="SPM">
   <img src="https://img.shields.io/badge/license-MIT-lightgrey.svg" alt="MIT">
@@ -49,7 +50,7 @@ Live performance + network + logs without leaving the simulator. No Charles. No 
 Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/your-org/PixzlSwiftLens.git", from: "0.1.0")
+.package(url: "https://github.com/Pixzl/PixzlSwiftLens.git", from: "0.1.0")
 ```
 
 Then add `"PixzlSwiftLens"` to your target's dependencies.

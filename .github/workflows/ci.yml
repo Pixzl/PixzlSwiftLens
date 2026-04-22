@@ -10,7 +10,7 @@ jobs:
     name: Build & Test
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Tooling versions
         run: |
           xcodebuild -version
