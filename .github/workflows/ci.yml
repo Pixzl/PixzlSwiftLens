@@ -5,9 +5,13 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
-    name: Build & Test
+  spm:
+    name: SPM Build & Test (macOS host)
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v5
@@ -19,3 +23,24 @@ jobs:
         run: swift build
       - name: Test
         run: swift test
+
+  ios:
+    name: iOS Simulator Build
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Tooling versions
+        run: xcodebuild -version
+      - name: Build library
+        run: |
+          xcodebuild \
+            -scheme PixzlSwiftLens \
+            -destination 'generic/platform=iOS Simulator' \
+            build
+      - name: Build demo app
+        working-directory: Examples/PixzlSwiftLensDemo
+        run: |
+          xcodebuild \
+            -scheme PixzlSwiftLensDemo \
+            -destination 'generic/platform=iOS Simulator' \
+            build
