@@ -1,0 +1,65 @@
+name: Bug report
+description: Something doesn't work the way it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. The more concrete the repro, the faster the fix.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: When I shake the device, the HUD opens but the network panel is empty.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add `.pixzlSwiftLens()` to the root view
+        2. Call `URLSession.shared.data(from: …)`
+        3. Shake → no entry appears
+    validations:
+      required: true
+
+  - type: input
+    id: pixzl-version
+    attributes:
+      label: PixzlSwiftLens version
+      placeholder: e.g. 0.2.0
+    validations:
+      required: true
+
+  - type: input
+    id: ios-version
+    attributes:
+      label: iOS version
+      placeholder: e.g. iOS 26.1 (Simulator)
+    validations:
+      required: true
+
+  - type: input
+    id: xcode-version
+    attributes:
+      label: Xcode version
+      placeholder: e.g. Xcode 26.4
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots / logs / stack traces
+      description: Drag-and-drop images here. Wrap log output in ``` code fences ```.

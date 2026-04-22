@@ -1,0 +1,25 @@
+name: Feature request
+description: Suggest a capability or polish.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the use case in concrete terms — what would change in your day if this existed?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Sketch the API or behavior. A code snippet is worth a thousand words.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you tried, related libraries, prior art.
