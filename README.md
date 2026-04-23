@@ -8,8 +8,8 @@
 <h1 align="center">PixzlSwiftLens</h1>
 
 <p align="center">
-  <strong>Drop-in SwiftUI debug HUD for iOS.</strong><br>
-  One modifier — and you get FPS, RAM, CPU, network calls and live OSLog inside your app.<br>
+  <strong>The SwiftUI-native debug HUD that tells you why your views keep rerendering.</strong><br>
+  One modifier — and you get FPS, RAM, CPU, network calls, OSLog stream, and live per-view body-invalidation rates inside your app.<br>
   Shake to expand. Zero overhead in release.
 </p>
 
@@ -37,20 +37,46 @@ struct MyApp: App {
 }
 ```
 
-## Why
+## The killer feature: Views that rerender too often
 
-Live performance + network + logs without leaving the simulator. No Charles. No Instruments. No Console.app. Just shake the device.
+SwiftUI's biggest performance trap isn't slow code — it's bodies that get re-evaluated hundreds of times per second because some `@Observable` higher up in the tree is too broad. `Self._printChanges()` in the console isn't enough. Xcode Instruments is overkill. You need a live, per-view, in-app counter.
 
-- **Pure SwiftUI.** Zero dependencies. Zero hacks for the host app.
-- **Swift 6 strict concurrency.** Every actor and `@Sendable` boundary is honest.
-- **Compiles to nothing in Release.** `.pixzlSwiftLens()` becomes `self` outside `#if DEBUG` — no symbols, no overhead.
+```swift
+CartView()
+  .lensTrack("Cart")                    // mark any view you want to watch
+```
+
+Shake → tap **Views** → you see a live table:
+
+| View | total | rate |
+|-----|------|------|
+| Cart | 842 | **38.0/s** 🔴 hot |
+| Header | 128 | 1.0/s |
+| ProductRow | 64 | 0.2/s |
+
+Rows auto-sort by live rate. Anything over 15/s gets a red "hot" badge. No other iOS debug tool shows you this.
+
+## Why this, not Pulse/FLEX/Atlantis
+
+| | PixzlSwiftLens | Pulse | FLEX | Atlantis |
+|-----|:---:|:---:|:---:|:---:|
+| Installation | **1 line** | ~10 | ~10 | Desktop + app |
+| Pure SwiftUI | ✅ | partial | UIKit | — |
+| **View-render tracking** | ✅ | — | — | — |
+| Live FPS / RAM / CPU HUD | ✅ | — | — | — |
+| Network capture | ✅ | ✅ (deeper) | ✅ | ✅ |
+| OSLog stream | ✅ | ✅ | — | — |
+| Release no-op | ✅ | ✅ | ✅ | ✅ |
+| iOS 26 / Swift 6 native | ✅ | ⚠️ | ⚠️ | ⚠️ |
+
+PixzlSwiftLens doesn't try to replace Pulse on network depth. It wins on **installation friction**, **SwiftUI-native feel**, and the one thing no other tool has: **view-render diagnostics**.
 
 ## Install
 
 Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/Pixzl/PixzlSwiftLens.git", from: "0.1.0")
+.package(url: "https://github.com/Pixzl/PixzlSwiftLens.git", from: "0.3.0")
 ```
 
 Then add `"PixzlSwiftLens"` to your target's dependencies.
@@ -84,23 +110,39 @@ struct MyApp: App {
 }
 ```
 
-### 3. See your `Logger` output
+`install()` registers globally **and** swizzles `URLSessionConfiguration.default`/`.ephemeral`, so sessions built from either pick up the recorder automatically.
 
-Nothing to wire — `OSLogStore` is read for the current process, every second. Both `Logger(...)` and `os_log(...)` show up.
+### 3. Track view body invalidations
+
+Add `.lensTrack(_:)` to any view you suspect is rerendering too often:
+
+```swift
+CartView()
+  .lensTrack("Cart")
+
+UserProfileView(user: user)
+  .lensTrack("UserProfile")
+```
+
+The Views panel updates every 500 ms. Rates above 5/s go orange, above 15/s go red with a "hot" badge.
+
+### 4. See your `Logger` output
+
+Nothing to wire — `OSLogStore` is read for the current process on a monotonic clock, every second. Both `Logger(...)` and `os_log(...)` show up.
 
 ## Configuration
 
-| Parameter   | Default          | Options                                                         |
-|-------------|------------------|-----------------------------------------------------------------|
-| `activator` | `.shake`         | `.shake`, `.threeFingerTap`, `.floatingButton`                  |
-| `panels`    | `.all`           | OptionSet of `.performance`, `.network`, `.logs`                |
-| `position`  | `.topTrailing`   | `.topLeading`, `.topTrailing`, `.bottomLeading`, `.bottomTrailing` |
-| `pillStyle` | `.compact`       | `.compact`, `.detailed`, `.hidden`                              |
+| Parameter   | Default          | Options                                                               |
+|-------------|------------------|-----------------------------------------------------------------------|
+| `activator` | `.shake`         | `.shake`, `.threeFingerTap`, `.floatingButton`                        |
+| `panels`    | `.all`           | OptionSet of `.performance`, `.network`, `.logs`, `.views`            |
+| `position`  | `.topTrailing`   | `.topLeading`, `.topTrailing`, `.bottomLeading`, `.bottomTrailing`    |
+| `pillStyle` | `.compact`       | `.compact`, `.detailed`, `.hidden`                                    |
 
 ```swift
 .pixzlSwiftLens(
   activator: .floatingButton,
-  panels: [.performance, .network],
+  panels: [.performance, .views],       // drop panels you don't need
   position: .bottomLeading,
   pillStyle: .detailed
 )
@@ -108,16 +150,17 @@ Nothing to wire — `OSLogStore` is read for the current process, every second. 
 
 ## What you get
 
-**Performance panel** — live FPS / RAM / CPU with rolling 60s charts.
-**Network panel** — every URLSession call, inline status, `Copy as cURL`, JSON pretty-print.
-**Logs panel** — `OSLogStore` stream with level filter and full-text search.
+- **Performance panel** — live FPS / RAM (phys_footprint, the metric iOS Jetsam uses) / CPU with rolling 60s charts
+- **Network panel** — every URLSession call, inline status, `Copy as cURL`, JSON pretty-print, truncation flag for large bodies (256 KB cap keeps the recorder cheap)
+- **Logs panel** — `OSLogStore` stream with level filter and full-text search, monotonic uptime cursor immune to wall-clock jumps
+- **Views panel** — live body-invalidation rates per `.lensTrack(_:)`-annotated view
 
 ## Release builds
 
-The public modifier expands to `self` outside `#if DEBUG`. There is no PixzlSwiftLens symbol in your release binary — verify with `nm`:
+The public modifier, the network protocol, and `.lensTrack` all collapse to `self` outside `#if DEBUG`. There is no PixzlSwiftURLProtocol, URLSessionSwizzler, or LensTrackModifier symbol in your release binary — verify with `nm`:
 
 ```sh
-xcrun nm -gU YourApp.app/YourApp | grep -i pixzl
+xcrun nm -gU YourApp.app/YourApp | grep -i "PixzlSwiftURLProtocol\|LensTrack"
 # (no output)
 ```
 
