@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 import ObjectiveC
 
@@ -52,3 +53,5 @@ extension URLSessionConfiguration {
         config.protocolClasses = classes
     }
 }
+#endif
+

@@ -11,6 +11,10 @@ struct NetworkRecord: Identifiable, Sendable, Equatable {
     var statusCode: Int?
     var responseHeaders: [String: String]?
     var responseBody: Data?
+    /// `true` if `requestBody` was captured but truncated to the capture cap.
+    var requestBodyTruncated: Bool = false
+    /// `true` if `responseBody` was captured but truncated to the capture cap.
+    var responseBodyTruncated: Bool = false
     var errorDescription: String?
     var duration: TimeInterval?
 

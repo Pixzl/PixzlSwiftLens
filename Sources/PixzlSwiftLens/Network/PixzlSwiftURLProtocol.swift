@@ -1,7 +1,13 @@
+#if DEBUG
 import Foundation
 
 final class PixzlSwiftURLProtocol: URLProtocol, @unchecked Sendable {
     private static let handledKey = "com.pixzl.swiftlens.handled"
+
+    /// Upper bound on captured request/response body bytes per record. Bodies larger
+    /// than this are truncated in the recorder (but still forwarded in full to the
+    /// client). Keeps the recorder cheap even on large downloads.
+    static let maxCapturedBodyBytes = 256 * 1024
 
     /// Test-only seam: prepends additional URLProtocol classes onto the inner
     /// session's chain, so tests can inject a mock responder behind the recorder.
@@ -13,6 +19,7 @@ final class PixzlSwiftURLProtocol: URLProtocol, @unchecked Sendable {
     private var recordID: UUID?
     private var startTime: Date = Date()
     private var responseBuffer = Data()
+    private var responseTruncated = false
 
     override class func canInit(with request: URLRequest) -> Bool {
         guard URLProtocol.property(forKey: handledKey, in: request) == nil else { return false }
@@ -30,18 +37,25 @@ final class PixzlSwiftURLProtocol: URLProtocol, @unchecked Sendable {
         recordID = id
         startTime = Date()
 
-        let body = request.httpBody ?? request.bodyStreamData()
-        let record = NetworkRecord(
+        let rawBody = request.httpBody ?? request.bodyStreamData()
+        let cap = Self.maxCapturedBodyBytes
+        let requestTruncated = (rawBody?.count ?? 0) > cap
+        let capturedBody: Data? = rawBody.map { $0.count > cap ? Data($0.prefix(cap)) : $0 }
+        var record = NetworkRecord(
             id: id,
             url: request.url ?? URL(string: "about:blank")!,
             method: request.httpMethod ?? "GET",
             requestHeaders: request.allHTTPHeaderFields ?? [:],
-            requestBody: body,
+            requestBody: capturedBody,
             startedAt: startTime
         )
+        record.requestBodyTruncated = requestTruncated
         Task { await NetworkRecorder.shared.append(record) }
 
         let delegate = PixzlSwiftProtocolDelegate(parent: self)
+        // Known limitation: we proxy via a fresh .default config, so the original
+        // session's auth / timeout / cookie / redirect settings are not preserved.
+        // See CLAUDE.md > "PixzlSwiftURLProtocol.startLoading() proxies …".
         let cfg = URLSessionConfiguration.default
         Self.innerProtocolsLock.lock()
         let extras = Self.innerProtocols
@@ -65,7 +79,18 @@ final class PixzlSwiftURLProtocol: URLProtocol, @unchecked Sendable {
     }
 
     fileprivate func didReceiveData(_ data: Data) {
-        responseBuffer.append(data)
+        let cap = Self.maxCapturedBodyBytes
+        if responseBuffer.count < cap {
+            let remaining = cap - responseBuffer.count
+            if data.count <= remaining {
+                responseBuffer.append(data)
+            } else {
+                responseBuffer.append(data.prefix(remaining))
+                responseTruncated = true
+            }
+        } else {
+            responseTruncated = true
+        }
         client?.urlProtocol(self, didLoad: data)
     }
 
@@ -73,6 +98,7 @@ final class PixzlSwiftURLProtocol: URLProtocol, @unchecked Sendable {
         let duration = Date().timeIntervalSince(startTime)
         let httpResp = dataTask?.response as? HTTPURLResponse
         let body = responseBuffer
+        let truncated = responseTruncated
         let errDesc = error.map { String(describing: $0) }
         let id = recordID
 
@@ -84,6 +110,7 @@ final class PixzlSwiftURLProtocol: URLProtocol, @unchecked Sendable {
                     if let k = kv.key as? String { acc[k] = String(describing: kv.value) }
                 }
                 rec.responseBody = body.isEmpty ? nil : body
+                rec.responseBodyTruncated = truncated
                 rec.errorDescription = errDesc
                 rec.duration = duration
             }
@@ -136,3 +163,5 @@ extension URLRequest {
         return data.isEmpty ? nil : data
     }
 }
+#endif
+

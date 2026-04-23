@@ -88,7 +88,9 @@ struct NetworkDetail: View {
                 }
             }
             if let body = record.requestBody {
-                Section("Request Body") { bodyView(body) }
+                Section(record.requestBodyTruncated ? "Request Body (truncated)" : "Request Body") {
+                    bodyView(body)
+                }
             }
             if let headers = record.responseHeaders, !headers.isEmpty {
                 Section("Response Headers") {
@@ -98,7 +100,9 @@ struct NetworkDetail: View {
                 }
             }
             if let body = record.responseBody {
-                Section("Response Body") { bodyView(body) }
+                Section(record.responseBodyTruncated ? "Response Body (truncated)" : "Response Body") {
+                    bodyView(body)
+                }
             }
             Section {
                 Button {
