@@ -1,9 +1,11 @@
 import SwiftUI
 import OSLog
+import PixzlSwiftLens
 
 struct ContentView: View {
     @State private var status: String = "Shake the device or use Hardware → Shake to expand."
     @State private var ballast: [Data] = []
+    @State private var counterRunning: Bool = false
 
     private let log = Logger(subsystem: "com.pixzl.demo", category: "ui")
 
@@ -32,6 +34,14 @@ struct ContentView: View {
                         ballast.removeAll()
                         status = "Ballast released."
                     }
+                }
+                Section("Views — shake → Views tab") {
+                    HotCounter(isRunning: counterRunning)
+                        .lensTrack("HotCounter")
+                    ColdCounter()
+                        .lensTrack("ColdCounter")
+                    Toggle("Run HotCounter (10 Hz rerenders)", isOn: $counterRunning)
+                        .font(.caption)
                 }
                 Section("Status") {
                     Text(status).font(.footnote).foregroundStyle(.secondary)
@@ -119,6 +129,42 @@ struct ContentView: View {
             for _ in 0..<10_000 { x = (x * 1.0000001).truncatingRemainder(dividingBy: 1_000_000) }
         }
         _ = x
+    }
+}
+
+/// View whose body re-evaluates at 10 Hz while running — showcases `.lensTrack`
+/// surfacing a high rerender rate in the Views panel.
+struct HotCounter: View {
+    let isRunning: Bool
+    @State private var tick: Int = 0
+
+    var body: some View {
+        HStack {
+            Image(systemName: "flame.fill").foregroundStyle(.orange)
+            Text("tick: \(tick)").font(.caption.monospacedDigit())
+            Spacer()
+            Text(isRunning ? "running" : "idle").font(.caption2).foregroundStyle(.secondary)
+        }
+        .task(id: isRunning) {
+            guard isRunning else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(100))
+                tick &+= 1
+            }
+        }
+    }
+}
+
+/// Control view whose body only re-evaluates on real state changes — baseline
+/// against which the hot counter's rate stands out.
+struct ColdCounter: View {
+    var body: some View {
+        HStack {
+            Image(systemName: "snowflake").foregroundStyle(.cyan)
+            Text("this view rerenders only when really needed")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 }
 
