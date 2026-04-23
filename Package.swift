@@ -18,8 +18,7 @@ let package = Package(
             name: "PixzlSwiftLens",
             path: "Sources/PixzlSwiftLens",
             swiftSettings: [
-                .enableUpcomingFeature("ExistentialAny"),
-                .enableExperimentalFeature("StrictConcurrency")
+                .enableUpcomingFeature("ExistentialAny")
             ]
         ),
         .testTarget(

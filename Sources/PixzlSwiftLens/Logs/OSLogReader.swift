@@ -28,20 +28,25 @@ struct LogEntry: Identifiable, Sendable, Equatable {
 }
 
 actor OSLogReader {
-    private var lastReadDate: Date?
+    /// Cursor into the OSLogStore, expressed as seconds-since-latest-boot. Using
+    /// uptime (monotonic) instead of a wall-clock `Date` makes the reader immune
+    /// to NTP syncs and manual clock adjustments — previously those could drop
+    /// logs (clock jumps forward) or duplicate them (clock jumps backward).
+    private var lastReadUptime: TimeInterval?
 
     func fetchSinceLast() -> [LogEntry] {
-        let cutoff = lastReadDate ?? Date().addingTimeInterval(-2)
-        let now = Date()
-        defer { lastReadDate = now }
+        let nowUptime = ProcessInfo.processInfo.systemUptime
+        // On first call, reach back ~2s to pick up warmup logs.
+        let cutoffUptime = max(0, lastReadUptime ?? (nowUptime - 2))
+        defer { lastReadUptime = nowUptime }
 
         do {
             let store = try OSLogStore(scope: .currentProcessIdentifier)
-            let position = store.position(date: cutoff)
+            let position = store.position(timeIntervalSinceLatestBoot: cutoffUptime)
             let entries = try store.getEntries(at: position)
             var out: [LogEntry] = []
             out.reserveCapacity(64)
-            for case let log as OSLogEntryLog in entries where log.date > cutoff {
+            for case let log as OSLogEntryLog in entries {
                 out.append(LogEntry(
                     id: UUID(),
                     date: log.date,

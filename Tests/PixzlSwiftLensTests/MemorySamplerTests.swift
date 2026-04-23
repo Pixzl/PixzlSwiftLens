@@ -4,7 +4,7 @@ import Testing
 @Suite("MemorySampler")
 struct MemorySamplerTests {
 
-    @Test("Reports a non-zero resident size for the running test process")
+    @Test("Reports a non-zero physical footprint for the running test process")
     func smokeNonZero() {
         let sampler = MemorySampler()
         let mb = sampler.sampleMB()
