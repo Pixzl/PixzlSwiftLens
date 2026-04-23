@@ -21,6 +21,7 @@ final class LensState {
     // Mirrored from background recorders — kept on main for SwiftUI bindings
     var networkRecords: [NetworkRecord] = []
     var logs: [LogEntry] = []
+    var viewInvalidations: [ViewInvalidationSummary] = []
 
     // Samplers
     private let fpsSampler = FPSSampler()
@@ -29,6 +30,7 @@ final class LensState {
     private var aggregateTask: Task<Void, Never>?
     private var networkPollTask: Task<Void, Never>?
     private var logsPollTask: Task<Void, Never>?
+    private var viewsPollTask: Task<Void, Never>?
 
     func toggleExpanded() {
         isExpanded.toggle()
@@ -45,6 +47,9 @@ final class LensState {
         if panels.contains(.logs) {
             startLogsPolling()
         }
+        if panels.contains(.views) {
+            startViewsPolling()
+        }
     }
 
     func stop() {
@@ -52,6 +57,7 @@ final class LensState {
         aggregateTask?.cancel()
         networkPollTask?.cancel()
         logsPollTask?.cancel()
+        viewsPollTask?.cancel()
     }
 
     private func startAggregateLoop() {
@@ -76,6 +82,17 @@ final class LensState {
                 try? await Task.sleep(for: .milliseconds(500))
                 guard let self else { return }
                 self.networkRecords = await NetworkRecorder.shared.snapshot()
+            }
+        }
+    }
+
+    private func startViewsPolling() {
+        viewsPollTask?.cancel()
+        viewsPollTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(500))
+                guard let self else { return }
+                self.viewInvalidations = ViewInvalidationRecorder.shared.snapshot()
             }
         }
     }
@@ -111,13 +128,14 @@ final class LensState {
 }
 
 enum LensTab: String, CaseIterable, Identifiable {
-    case performance, network, logs
+    case performance, network, logs, views
     var id: String { rawValue }
     var title: String {
         switch self {
         case .performance: "Performance"
         case .network:     "Network"
         case .logs:        "Logs"
+        case .views:       "Views"
         }
     }
 }

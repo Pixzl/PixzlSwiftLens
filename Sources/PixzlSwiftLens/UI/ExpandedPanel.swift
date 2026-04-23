@@ -28,6 +28,7 @@ struct ExpandedPanel: View {
         case .performance: PerformancePanel(state: state)
         case .network:     NetworkPanel(state: state)
         case .logs:        LogsPanel(state: state)
+        case .views:       ViewsPanel(state: state)
         }
     }
 
@@ -54,6 +55,7 @@ struct ExpandedPanel: View {
         if config.panels.contains(.performance) { tabs.append(.performance) }
         if config.panels.contains(.network)     { tabs.append(.network) }
         if config.panels.contains(.logs)        { tabs.append(.logs) }
+        if config.panels.contains(.views)       { tabs.append(.views) }
         return tabs
     }
 }
