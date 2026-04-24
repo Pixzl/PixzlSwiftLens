@@ -55,7 +55,7 @@ final class PixzlSwiftURLProtocol: URLProtocol, @unchecked Sendable {
         let delegate = PixzlSwiftProtocolDelegate(parent: self)
         // Known limitation: we proxy via a fresh .default config, so the original
         // session's auth / timeout / cookie / redirect settings are not preserved.
-        // See CLAUDE.md > "PixzlSwiftURLProtocol.startLoading() proxies …".
+        // See AGENTS.md > "PixzlSwiftURLProtocol.startLoading() proxies …".
         let cfg = URLSessionConfiguration.default
         Self.innerProtocolsLock.lock()
         let extras = Self.innerProtocols
