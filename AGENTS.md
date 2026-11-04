@@ -150,7 +150,7 @@ Any new code reachable from the modifier's body, from `lensTrack`, or from the n
 
 ## Commit identity & remote
 
-The entire commit history was rewritten via `git filter-repo` to use the GitHub no-reply email (`26158645+drieken@users.noreply.github.com`). The local `user.email` for this repo is set accordingly. **Do not author commits with `dominikrieken@icloud.com` or `drieken@pixzl.de`** — those leak personal contact info publicly. If the global git config still has a personal email, override per-commit with `git -c user.email="26158645+drieken@users.noreply.github.com" commit …`.
+The entire commit history was rewritten via `git filter-repo` to use the GitHub no-reply email (`26158645+drieken@users.noreply.github.com`). The local `user.email` for this repo is set accordingly. **Do not author commits with private addresses** — those leak personal contact info publicly. If the global git config still has a personal email, override per-commit with `git -c user.email="26158645+drieken@users.noreply.github.com" commit …`.
 
 `main` has branch protection: **force-push and deletion are blocked**. PR reviews and required status checks are *not* enforced — direct pushes are fine, but rewriting history needs the protection toggled off via the GitHub API first (which is itself a destructive change requiring explicit user authorization).
 
