@@ -74,3 +74,51 @@ jobs:
         if: always()
         run: |
           grep -h -E "(warning|error):" lib.log Examples/PixzlSwiftLensDemo/demo.log | grep -v "^ld: warning" | sort -u || true
+
+  screenshots:
+    name: Simulator Screenshots (Xcode 27.2)
+    runs-on: xcode-27
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build demo app
+        working-directory: Examples/PixzlSwiftLensDemo
+        run: |
+          set -o pipefail
+          xcodebuild -scheme PixzlSwiftLensDemo \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build build -quiet
+      - name: Capture HUD in light and dark mode
+        run: |
+          set -euo pipefail
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          d = json.load(sys.stdin)["devices"]
+          runtimes = sorted((r for r in d if "iOS-27" in r), reverse=True)
+          for r in runtimes:
+              for dev in d[r]:
+                  if "Pro" in dev["name"] and "Max" not in dev["name"]:
+                      print(dev["udid"]); sys.exit()
+          print(d[runtimes[0]][0]["udid"])')
+          xcrun simctl list devices | grep "$UDID"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          APP=Examples/PixzlSwiftLensDemo/build/Build/Products/Debug-iphonesimulator/PixzlSwiftLensDemo.app
+          /usr/libexec/PlistBuddy -c "Print :CADisableMinimumFrameDurationOnPhone" "$APP/Info.plist" || echo "CADisableMinimumFrameDurationOnPhone missing"
+          xcrun simctl install "$UDID" "$APP"
+          mkdir -p shots
+          for mode in light dark; do
+            xcrun simctl ui "$UDID" appearance "$mode"
+            xcrun simctl terminate "$UDID" com.pixzl.swiftlens.demo || true
+            xcrun simctl launch "$UDID" com.pixzl.swiftlens.demo --auto-demo
+            sleep 6
+            xcrun simctl io "$UDID" screenshot "shots/pill-$mode.png"
+            sleep 7
+            xcrun simctl io "$UDID" screenshot "shots/panel-$mode.png"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: shots/
