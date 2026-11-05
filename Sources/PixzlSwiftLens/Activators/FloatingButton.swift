@@ -11,13 +11,10 @@ struct FloatingButton: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 44)
-                .background(
-                    Circle()
-                        .fill(.black.opacity(0.7))
-                        .shadow(radius: 4)
-                )
+                .glassEffect(.regular.tint(LensTheme.glassTint).interactive(), in: .circle)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("PixzlSwiftLens")
         .offset(x: lastOffset.width + dragOffset.width,
                 y: lastOffset.height + dragOffset.height)
         .gesture(

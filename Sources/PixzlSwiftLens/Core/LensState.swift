@@ -6,6 +6,9 @@ import Observation
 final class LensState {
     // Live performance values
     var fps: Int = 0
+    /// Highest frame rate the display link can deliver in this app (60 or 120 on
+    /// ProMotion devices). Scales the FPS chart and colors.
+    var maxFPS: Int = 60
     var memMB: Int = 0
     var cpuPct: Int = 0
 
@@ -37,7 +40,12 @@ final class LensState {
     }
 
     func start(panels: PixzlSwiftLensPanels) async {
+        if !panels.contains(selectedTab.panel),
+           let first = LensTab.allCases.first(where: { panels.contains($0.panel) }) {
+            selectedTab = first
+        }
         if panels.contains(.performance) {
+            maxFPS = FPSSampler.maximumFPS()
             fpsSampler.start { [weak self] in self?.fps = $0 }
             startAggregateLoop()
         }
@@ -130,6 +138,15 @@ final class LensState {
 enum LensTab: String, CaseIterable, Identifiable {
     case performance, network, logs, views
     var id: String { rawValue }
+    /// The config flag that enables this tab.
+    var panel: PixzlSwiftLensPanels {
+        switch self {
+        case .performance: .performance
+        case .network:     .network
+        case .logs:        .logs
+        case .views:       .views
+        }
+    }
     var title: String {
         switch self {
         case .performance: "Performance"

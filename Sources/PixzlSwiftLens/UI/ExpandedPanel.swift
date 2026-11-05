@@ -11,7 +11,7 @@ struct ExpandedPanel: View {
                 .lensInlineNavigationTitle()
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
-                        Button("Done") { state.isExpanded = false }
+                        Button(role: .close) { state.isExpanded = false }
                     }
                 }
                 .safeAreaInset(edge: .top) {
@@ -32,30 +32,20 @@ struct ExpandedPanel: View {
         }
     }
 
+    @ViewBuilder
     private var tabBar: some View {
-        HStack(spacing: 6) {
-            ForEach(availableTabs) { tab in
-                Button { state.selectedTab = tab } label: {
-                    Text(tab.title)
-                        .font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule().fill(state.selectedTab == tab ? Color.accentColor : Color.gray.opacity(0.2))
-                        )
-                        .foregroundStyle(state.selectedTab == tab ? .white : .primary)
+        if availableTabs.count > 1 {
+            Picker("Panel", selection: $state.selectedTab) {
+                ForEach(availableTabs) { tab in
+                    Text(tab.title).tag(tab)
                 }
-                .buttonStyle(.plain)
             }
+            .pickerStyle(.segmented)
+            .labelsHidden()
         }
     }
 
     private var availableTabs: [LensTab] {
-        var tabs: [LensTab] = []
-        if config.panels.contains(.performance) { tabs.append(.performance) }
-        if config.panels.contains(.network)     { tabs.append(.network) }
-        if config.panels.contains(.logs)        { tabs.append(.logs) }
-        if config.panels.contains(.views)       { tabs.append(.views) }
-        return tabs
+        LensTab.allCases.filter { config.panels.contains($0.panel) }
     }
 }

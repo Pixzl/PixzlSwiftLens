@@ -7,7 +7,7 @@ struct PerformancePanel: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                metricCard(title: "FPS",  current: state.fps,    series: state.fpsHistory, range: 0...60,  color: LensTheme.fpsColor(state.fps))
+                metricCard(title: "FPS",  current: state.fps,    series: state.fpsHistory, range: 0...state.maxFPS, color: LensTheme.fpsColor(state.fps, max: state.maxFPS))
                 metricCard(title: "RAM",  current: state.memMB,  series: state.memHistory, range: 0...max(256, (state.memHistory.max() ?? 0) + 50), color: .blue, suffix: " MB")
                 metricCard(title: "CPU",  current: state.cpuPct, series: state.cpuHistory, range: 0...100, color: LensTheme.cpuColor(state.cpuPct), suffix: "%")
             }

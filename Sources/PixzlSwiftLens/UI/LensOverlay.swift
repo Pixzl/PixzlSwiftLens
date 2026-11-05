@@ -16,7 +16,6 @@ struct LensOverlay: View {
         .sheet(isPresented: $state.isExpanded) {
             ExpandedPanel(state: state, config: config)
                 .presentationDetents([.medium, .large])
-                .presentationBackground(.regularMaterial)
         }
     }
 }
