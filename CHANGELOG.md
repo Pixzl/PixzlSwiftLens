@@ -4,6 +4,8 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-11-05
+
 ### Changed
 - **Liquid Glass.** The collapsed pill and the floating button use a dark-tinted, interactive `glassEffect` instead of a flat black background. The expanded panel keeps the system's glass sheet (the `.regularMaterial` override is gone) and closes with the system close button (`Button(role: .close)`).
 - Panel tabs are a segmented `Picker`. Only enabled panels appear, and the bar disappears when just one panel is enabled.
@@ -65,7 +67,8 @@ Initial release.
 - Demo app under `Examples/PixzlSwiftLensDemo` with a `--auto-demo` launch argument
 - 13 unit + integration tests, including end-to-end URLProtocol capture with an injected mock responder
 
-[Unreleased]: https://github.com/Pixzl/PixzlSwiftLens/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Pixzl/PixzlSwiftLens/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Pixzl/PixzlSwiftLens/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Pixzl/PixzlSwiftLens/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Pixzl/PixzlSwiftLens/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Pixzl/PixzlSwiftLens/releases/tag/v0.1.0
