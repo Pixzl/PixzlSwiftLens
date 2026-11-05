@@ -22,6 +22,7 @@ struct CollapsedPill: View {
             .regular.tint(LensTheme.glassTint).interactive(),
             in: .rect(cornerRadius: LensTheme.pillCorner)
         )
+        .environment(\.colorScheme, .dark)
     }
 
     private func metric(value: Int, suffix: String, color: Color) -> some View {

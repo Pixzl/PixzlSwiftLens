@@ -12,6 +12,7 @@ struct FloatingButton: View {
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 44)
                 .glassEffect(.regular.tint(LensTheme.glassTint).interactive(), in: .circle)
+                .environment(\.colorScheme, .dark)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("PixzlSwiftLens")
