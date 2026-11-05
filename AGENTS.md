@@ -11,6 +11,8 @@ swift test --filter EndToEndCaptureTests                       # one suite
 swift test --filter "EndToEndCaptureTests/capturesSuccessfulGET"  # one test
 ```
 
+CI builds every change with **Xcode 26.6** (`macos-26`) and **Xcode 27.2** (`xcode-27`, iOS 27.2 SDK); a third job captures light/dark simulator screenshots of the demo on iOS 27 as the `screenshots` artifact (`gh run download <run-id> -n screenshots`).
+
 The package builds for **both iOS 26 and macOS 26** so that `swift test` runs on a Mac without booting a simulator. iOS-only code lives behind `#if canImport(UIKit)` with no-op stubs for the macOS branch.
 
 To verify an iOS-only change actually compiles for the device target:
@@ -103,7 +105,8 @@ Activator ─────┐
 - **Body capture cap**: `PixzlSwiftURLProtocol.maxCapturedBodyBytes = 256 KB`. Request and response bodies are truncated at that size for the recorder; the downstream URL client still receives the full body. `NetworkRecord.requestBodyTruncated` / `.responseBodyTruncated` flags surface the truncation in the detail view.
 - **Logs**: `OSLogReader` is an actor that polls `OSLogStore(scope: .currentProcessIdentifier)` using a **monotonic cursor** (`ProcessInfo.systemUptime` + `OSLogStore.position(timeIntervalSinceLatestBoot:)`). Do **not** regress to a wall-clock `Date` cursor — that drops entries on NTP sync forward-jumps and duplicates entries on backward-jumps.
 - **Memory**: `MemorySampler` reads `task_vm_info.phys_footprint` (the metric iOS Jetsam uses, same as Xcode's Memory Graph). Do not revert to `mach_task_basic_info.resident_size` — that metric is consistently lower than what actually causes termination.
-- **UI** (`Sources/PixzlSwiftLens/UI/`): `LensOverlay` chooses pill vs floating button; `ExpandedPanel` is a `.sheet(isPresented:)` with tabs, **not** a custom presentation. Adding a panel requires **four** coordinated edits: (1) new case in `LensTab` (in `LensState.swift`), (2) new flag in `PixzlSwiftLensPanels` OptionSet (in `PixzlSwiftLensConfig.swift`), (3) new case in `ExpandedPanel.content`, (4) new entry in `ExpandedPanel.availableTabs`. Missing any of the four fails silently (panel simply doesn't show or crashes on tab selection).
+- **UI** (`Sources/PixzlSwiftLens/UI/`): `LensOverlay` chooses pill vs floating button; `ExpandedPanel` is a `.sheet(isPresented:)` with tabs, **not** a custom presentation. Adding a panel requires **three** coordinated edits: (1) new case in `LensTab` plus its `panel` mapping (in `LensState.swift`), (2) new flag in `PixzlSwiftLensPanels` OptionSet (in `PixzlSwiftLensConfig.swift`), (3) new case in `ExpandedPanel.content`. `availableTabs` derives from `LensTab.allCases`. The pill and floating button use a dark-tinted `glassEffect` (`LensTheme.glassTint`); the sheet keeps the system glass, so do not add `presentationBackground` back.
+- **FPS / ProMotion**: `FPSSampler.maximumFPS()` returns the screen's max rate, capped at 60 on iPhone unless the host app sets `CADisableMinimumFrameDurationOnPhone`. The display link requests that rate via `preferredFrameRateRange`; `LensState.maxFPS` scales the chart and `LensTheme.fpsColor(_:max:)`.
 
 ### View-render tracking — deliberate design choices
 
@@ -154,7 +157,7 @@ The entire commit history was rewritten via `git filter-repo` to use the GitHub 
 
 `main` has branch protection: **force-push and deletion are blocked**. PR reviews and required status checks are *not* enforced — direct pushes are fine, but rewriting history needs the protection toggled off via the GitHub API first (which is itself a destructive change requiring explicit user authorization).
 
-The remote is SSH (`git@github.com:Pixzl/PixzlSwiftLens.git`) — HTTPS pushes fail because the OAuth token lacks the `workflow` scope and any commit touching `.github/workflows/` gets rejected. The same scope limitation breaks `gh pr merge` on Dependabot PRs that touch workflows: the workaround is to push the same diff directly to `main` over SSH, after which Dependabot auto-closes its now-redundant PR.
+HTTPS pushes work, including commits touching `.github/workflows/` (the token has had the `workflow` scope since 2026-09). Older notes about an SSH-only workaround for workflow changes and Dependabot PRs are obsolete.
 
 Dependabot is configured in `.github/dependabot.yml` and opens weekly PRs for GitHub Actions version bumps. They are safe to merge or to land directly on `main` (see above).
 
