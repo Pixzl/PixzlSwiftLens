@@ -11,8 +11,20 @@ concurrency:
 
 jobs:
   spm:
-    name: SPM Build & Test (macOS host)
-    runs-on: macos-26
+    name: SPM Build & Test (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Xcode 26.6
+            runner: macos-26
+            xcode: /Applications/Xcode_26.6.app
+          - name: Xcode 27.2
+            runner: xcode-27
+            xcode: /Applications/Xcode_27.2.app
+    env:
+      DEVELOPER_DIR: ${{ matrix.xcode }}/Contents/Developer
     steps:
       - uses: actions/checkout@v7
       - name: Tooling versions
@@ -20,27 +32,44 @@ jobs:
           xcodebuild -version
           swift --version
       - name: Build
-        run: swift build
+        run: swift build 2>&1 | tee build.log
       - name: Test
         run: swift test
 
   ios:
-    name: iOS Simulator Build
-    runs-on: macos-26
+    name: iOS Simulator Build (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Xcode 26.6
+            runner: macos-26
+            xcode: /Applications/Xcode_26.6.app
+          - name: Xcode 27.2
+            runner: xcode-27
+            xcode: /Applications/Xcode_27.2.app
+    env:
+      DEVELOPER_DIR: ${{ matrix.xcode }}/Contents/Developer
     steps:
       - uses: actions/checkout@v7
       - name: Tooling versions
         run: xcodebuild -version
       - name: Build library
         run: |
+          set -o pipefail
           xcodebuild \
             -scheme PixzlSwiftLens \
             -destination 'generic/platform=iOS Simulator' \
-            build
+            build 2>&1 | tee lib.log
       - name: Build demo app
         working-directory: Examples/PixzlSwiftLensDemo
         run: |
+          set -o pipefail
           xcodebuild \
             -scheme PixzlSwiftLensDemo \
             -destination 'generic/platform=iOS Simulator' \
-            build
+            build 2>&1 | tee demo.log
+      - name: Warnings
+        if: always()
+        run: grep -h -E "(warning|error):" lib.log Examples/PixzlSwiftLensDemo/demo.log | grep -v "^ld: warning" | sort -u || true
