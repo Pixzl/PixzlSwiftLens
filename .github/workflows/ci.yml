@@ -72,4 +72,5 @@ jobs:
             build 2>&1 | tee demo.log
       - name: Warnings
         if: always()
-        run: grep -h -E "(warning|error):" lib.log Examples/PixzlSwiftLensDemo/demo.log | grep -v "^ld: warning" | sort -u || true
+        run: |
+          grep -h -E "(warning|error):" lib.log Examples/PixzlSwiftLensDemo/demo.log | grep -v "^ld: warning" | sort -u || true
