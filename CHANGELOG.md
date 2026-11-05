@@ -4,6 +4,18 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-11-05
+
+### Changed
+- **Liquid Glass.** The collapsed pill and the floating button use a dark-tinted, interactive `glassEffect` instead of a flat black background. The expanded panel keeps the system's glass sheet (the `.regularMaterial` override is gone) and closes with the system close button (`Button(role: .close)`).
+- Panel tabs are a segmented `Picker`. Only enabled panels appear, and the bar disappears when just one panel is enabled.
+- **120 Hz.** The FPS sampler asks its display link for the screen's maximum rate. The FPS chart and colors scale to 60 or 120 Hz. On iPhone this needs `CADisableMinimumFrameDurationOnPhone` in the host app's Info.plist; without it the HUD measures against 60 Hz. The demo app sets the key via a merged `Info.plist` (Xcode has no `INFOPLIST_KEY_` setting for it).
+- CI builds and tests with Xcode 26.6 and Xcode 27.2 (iOS 27.2 SDK) and captures light and dark simulator screenshots on iOS 27.
+
+### Fixed
+- When `panels` did not include `.performance`, the panel opened on the disabled Performance tab.
+- With several connected scenes (iPad multitasking, external display), the three-finger tap could attach to a background scene. It now uses the key window of the foreground-active scene.
+
 ## [0.3.0] — 2026-04-23
 
 ### Added
@@ -55,7 +67,8 @@ Initial release.
 - Demo app under `Examples/PixzlSwiftLensDemo` with a `--auto-demo` launch argument
 - 13 unit + integration tests, including end-to-end URLProtocol capture with an injected mock responder
 
-[Unreleased]: https://github.com/Pixzl/PixzlSwiftLens/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Pixzl/PixzlSwiftLens/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Pixzl/PixzlSwiftLens/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Pixzl/PixzlSwiftLens/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Pixzl/PixzlSwiftLens/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Pixzl/PixzlSwiftLens/releases/tag/v0.1.0

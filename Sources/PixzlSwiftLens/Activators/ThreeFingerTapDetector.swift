@@ -14,8 +14,11 @@ final class ThreeFingerTapDetector: NSObject {
     }
 
     private func attach() {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = scene.windows.first(where: \.isKeyWindow) ?? scene.windows.first
+        // With several scenes (iPad multitasking, external display) `.first` can be a
+        // background scene; prefer the one the user is interacting with.
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        guard let scene = scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first,
+              let window = scene.keyWindow ?? scene.windows.first
         else {
             attempts += 1
             guard attempts < 20 else { return }

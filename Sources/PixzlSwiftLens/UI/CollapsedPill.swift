@@ -6,7 +6,7 @@ struct CollapsedPill: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            metric(value: state.fps, suffix: style == .detailed ? " FPS" : "", color: LensTheme.fpsColor(state.fps))
+            metric(value: state.fps, suffix: style == .detailed ? " FPS" : "", color: LensTheme.fpsColor(state.fps, max: state.maxFPS))
             divider
             metric(value: state.memMB, suffix: style == .detailed ? " MB" : "", color: .blue)
             divider
@@ -16,11 +16,13 @@ struct CollapsedPill: View {
         .foregroundStyle(.white)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(
-            RoundedRectangle(cornerRadius: LensTheme.pillCorner, style: .continuous)
-                .fill(.black.opacity(0.72))
-                .shadow(color: .black.opacity(0.25), radius: 4, x: 0, y: 2)
+        // Dark-tinted Liquid Glass: matches the system chrome, but the tint keeps the
+        // white digits readable over bright app content.
+        .glassEffect(
+            .regular.tint(LensTheme.glassTint).interactive(),
+            in: .rect(cornerRadius: LensTheme.pillCorner)
         )
+        .environment(\.colorScheme, .dark)
     }
 
     private func metric(value: Int, suffix: String, color: Color) -> some View {

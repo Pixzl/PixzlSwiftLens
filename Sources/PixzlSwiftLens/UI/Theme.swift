@@ -15,12 +15,18 @@ enum LensTheme {
     static let pillFont    = Font.system(.caption, design: .monospaced).weight(.semibold)
     static let pillCorner  = 14.0
     static let panelCorner = 18.0
+    /// Tint for the pill and floating button glass. Both also force the dark color
+    /// scheme, so the metric colors stay bright in light mode too.
+    static let glassTint   = Color.black.opacity(0.65)
 
-    static func fpsColor(_ fps: Int) -> Color {
-        switch fps {
-        case ..<30: .red
-        case 30..<55: .orange
-        default: .green
+    /// Colors relative to the display's maximum, so 60 FPS reads as green on a
+    /// 60 Hz screen and as orange on a 120 Hz ProMotion screen.
+    static func fpsColor(_ fps: Int, max maxFPS: Int) -> Color {
+        let ratio = Double(fps) / Double(Swift.max(maxFPS, 1))
+        switch ratio {
+        case ..<0.5: return .red
+        case ..<0.9: return .orange
+        default:     return .green
         }
     }
 

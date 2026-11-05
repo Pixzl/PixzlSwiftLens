@@ -67,7 +67,7 @@ Rows auto-sort by live rate. Anything over 15/s gets a red "hot" badge. No other
 | Network capture | ✅ | ✅ (deeper) | ✅ | ✅ |
 | OSLog stream | ✅ | ✅ | — | — |
 | Release no-op | ✅ | ✅ | ✅ | ✅ |
-| iOS 26 / Swift 6 native | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| iOS 26–27 / Swift 6 native | ✅ | ⚠️ | ⚠️ | ⚠️ |
 
 PixzlSwiftLens doesn't try to replace Pulse on network depth. It wins on **installation friction**, **SwiftUI-native feel**, and the one thing no other tool has: **view-render diagnostics**.
 
@@ -150,10 +150,21 @@ Nothing to wire — `OSLogStore` is read for the current process on a monotonic 
 
 ## What you get
 
-- **Performance panel** — live FPS / RAM (phys_footprint, the metric iOS Jetsam uses) / CPU with rolling 60s charts
+- **Performance panel** — live FPS / RAM (phys_footprint, the metric iOS Jetsam uses) / CPU with rolling 60s charts. FPS scales to the display: 60 Hz, or 120 Hz on ProMotion (see below)
 - **Network panel** — every URLSession call, inline status, `Copy as cURL`, JSON pretty-print, truncation flag for large bodies (256 KB cap keeps the recorder cheap)
 - **Logs panel** — `OSLogStore` stream with level filter and full-text search, monotonic uptime cursor immune to wall-clock jumps
 - **Views panel** — live body-invalidation rates per `.lensTrack(_:)`-annotated view
+
+### 120 Hz on ProMotion iPhones
+
+iPhone caps every `CADisplayLink` at 60 Hz unless the app opts in, so without the key below the HUD measures against 60. Add it to your app's Info.plist. Xcode has no `INFOPLIST_KEY_…` build setting for it; with a generated Info.plist, point `INFOPLIST_FILE` at a small plist holding just this key and Xcode merges both (the demo app does this):
+
+```xml
+<key>CADisableMinimumFrameDurationOnPhone</key>
+<true/>
+```
+
+iPad ProMotion needs no key.
 
 ## Release builds
 
@@ -166,9 +177,9 @@ xcrun nm -gU YourApp.app/YourApp | grep -i "PixzlSwiftURLProtocol\|LensTrack"
 
 ## Requirements
 
-- iOS 26+
+- iOS 26+ (built and run in CI against the iOS 27.2 SDK)
 - Swift 6.2+
-- Xcode 26+
+- Xcode 26+ (CI builds with Xcode 26.6 and 27.2)
 
 ## License
 
