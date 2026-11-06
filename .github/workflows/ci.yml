@@ -117,7 +117,7 @@ jobs:
             sleep 7
             xcrun simctl io "$UDID" screenshot "shots/panel-$mode.png"
           done
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: screenshots
